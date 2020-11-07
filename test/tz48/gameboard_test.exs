@@ -44,19 +44,31 @@ defmodule TZ48.GameboardTest do
 
   describe "process_move/2" do
     test "move right" do
+      board = [[:empty, 2, 2, 4, 4, :empty]]
+      new_board = Gameboard.process_move(board, :right)
 
+      assert new_board == [[:empty, :empty, :empty, :empty, 4, 8]]
     end
 
     test "move left" do
+      board = [[:empty, 2, 2, 4, 4, :empty]]
+      new_board = Gameboard.process_move(board, :left)
 
+      assert new_board == [[8, 4, :empty, :empty, :empty, :empty]]
     end
 
     test "move up" do
+      board = [[:empty], [2], [2], [:empty], [:empty], [2]]
+      new_board = Gameboard.process_move(board, :up)
 
+      assert new_board == [[4], [2], [:empty], [:empty], [:empty], [:empty]]
     end
 
     test "move down" do
+      board = [[:empty], [2], [2], [:empty], [:empty], [2]]
+      new_board = Gameboard.process_move(board, :down)
 
+      assert new_board == [[:empty], [:empty], [:empty], [:empty], [2], [4]]
     end
   end
 
@@ -94,7 +106,6 @@ defmodule TZ48.GameboardTest do
     end
   end
 
-
   defp get_board_with_only_one_empty_tile() do
     [
       [2, 2, 2, 2, 2, 2],
@@ -105,7 +116,6 @@ defmodule TZ48.GameboardTest do
       [2, 2, 2, 2, 2, 2]
     ]
   end
-
 
   defp get_non_empty_tiles(board) do
     Enum.reduce(board, [], fn(row, acc) ->

@@ -1,4 +1,5 @@
 defmodule TZ48.Gameboard do
+  alias TZ48.Util
   @moduledoc """
   The 2048 Gameboard.
 
@@ -95,25 +96,69 @@ defmodule TZ48.Gameboard do
   @doc """
   Process command to move tiles to the given direction.
 
-  Direction can be either :right, :left, :top, :bottom
+  Direction can be either :right, :left, :up, :down.
+
+  Because we are using Enum maps for processing the tiles after movement,
+  we cannot process the upward and downward movement directly.
+
+  We do this by tranposing the rows as columns then do :left movement for :up and :right movement
+  for :down and then transpose again.
   """
   def process_move(board, :right) do
     Enum.map(board, fn(row) ->
-
+      row
+      |> Enum.reverse
+      |> process_row
+      |> Enum.reverse
     end)
   end
 
   def process_move(board, :left) do
-
+    Enum.map(board, fn(row) ->
+      process_row(row)
+    end)
   end
 
-  def process_move(board, :top) do
-
+  def process_move(board, :up) do
+    board
+    |> Util.transpose()
+    |> process_move(:left)
+    |> Util.transpose()
   end
 
-  def process_move(board, :bottom) do
-
+  def process_move(board, :down) do
+    board
+    |> Util.transpose()
+    |> process_move(:right)
+    |> Util.transpose()
   end
+
+  def process_row(row) do
+    length = Enum.count(row)
+
+    row = Enum.reduce(row, [], fn(tile, acc) ->
+      cond do
+        is_empty_tile?(tile) -> acc
+        acc == [] -> [tile]
+        is_mergable_tile?(tile, acc) ->
+          [h|t] = acc
+          [h + tile] ++ t
+        true -> [tile] ++ acc
+      end
+    end)
+    |> Enum.reverse
+
+    list = Stream.cycle([:empty]) |> Enum.take(length - Enum.count(row))
+
+    row ++ list
+  end
+
+  defp is_empty_tile?(tile), do: tile == :empty
+  defp is_mergable_tile?(tile, [h|_]) do
+    h == tile
+  end
+  defp is_mergable_tile?(_, []), do: false
+
 
   defp has_won?(board) do
     List.flatten(board)
