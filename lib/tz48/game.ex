@@ -9,7 +9,7 @@ defmodule TZ48.Game do
 
   alias TZ48.Util
 
-  defstruct id: nil, board: [], players: [], state: :continue
+  defstruct id: nil, board: [], players: [], state: :continue, last_move: nil, new_coords: nil
 
   @doc """
   Start a new game.
@@ -60,7 +60,7 @@ defmodule TZ48.Game do
     tile = tile || Enum.random(@tile_options)
     empty_spots = find_empty_spots(game.board)
     random_spot = Enum.random(empty_spots)
-    %{game | board: do_place_tile(game.board, random_spot, tile)}
+    %{game | board: do_place_tile(game.board, random_spot, tile), new_coords: random_spot}
     # {do_place_tile(board, random_spot, tile), random_spot}
   end
 
@@ -123,7 +123,7 @@ defmodule TZ48.Game do
     updated_board = do_process_move(board, direction)
     state = process_state(updated_board)
 
-    %{game | state: state, board: updated_board}
+    %{game | state: state, board: updated_board, last_move: direction}
   end
 
   def do_process_move(board, :right) do

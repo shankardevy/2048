@@ -1,0 +1,37 @@
+
+<%= if !@game do %>
+  <div class="">
+    <div class="mt-5 d-flex flex-column text-center">
+      <h1>2048</h1>
+      <%= if @game_id do %>
+        <p class="mx-auto" style="max-width: 28rem;">It looks like the game you are trying to join doesn't exist or has ended. Don't worry. You can start a new game!</p>
+      <% else %>
+        <p class="mx-auto" style="max-width: 28rem;">Play 2048 built using Phoenix Live View <br/>written with 0 lines of javascript!</p>
+      <% end %>
+    </div>
+
+    <div class="mt-5 d-flex justify-content-center">
+      <a phx-click="start" class="btn btn-primary">Start Classic Game</a>
+    </div>
+
+  </div>
+<% else %>
+  <div class="container">
+    <h1>2048</h1>
+
+    <div class="row">
+      <div class="col-sm-6">
+        <%= if @game do %>
+          <%= live_component @socket, TZ48Web.GameboardComponent, game: @game, spot: @spot %>
+        <% end %>
+      </div>
+      <div class="col-sm-6">
+        <%= if @game && @game.state == :continue do %>
+          <p>Number of players: <%= Enum.count(@game.players) %></p>
+          <%= live_component @socket, TZ48Web.GameControlComponent, autoplay: @autoplay, game: @game, spot: @spot %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
+

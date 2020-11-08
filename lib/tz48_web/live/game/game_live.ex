@@ -7,7 +7,7 @@ defmodule TZ48Web.GameLive do
 
   @impl true
   def mount(params, _session, socket) do
-    {:ok, assign(socket, spot: {1, 1}, game_pid: nil)}
+    {:ok, assign(socket, spot: {1, 1}, autoplay: false, game: nil, game_id: nil)}
   end
 
   @impl true
@@ -17,7 +17,9 @@ defmodule TZ48Web.GameLive do
     game = cond do
       socket.connected? && game_pid ->
         PubSub.subscribe TZ48.PubSub, "game:#{game_id}"
-        GameServer.join_game(game_pid, self())
+        game = GameServer.join_game(game_pid, self())
+        PubSub.broadcast TZ48.PubSub, "game:#{game_id}", :sync_board
+        game
       game_pid ->
         GameServer.get_game(game_pid)
       true -> nil
@@ -35,10 +37,29 @@ defmodule TZ48Web.GameLive do
   """
   @impl true
   def handle_event("start", _, socket) do
-    game_pid = socket.assigns.game_pid
-    game = GameServer.start_game(game_pid)
+    game_id = UUID.uuid4()
+    {:ok, pid} =
+      DynamicSupervisor.start_child(
+        TZ48.GameSupervisor,
+        {GameServer, [id: game_id, name: game_pid(game_id)]}
+      )
+    game = GameServer.start_game(pid)
 
-    {:noreply, assign(socket, game: game)}
+    {:noreply, push_patch(socket, to: Routes.game_path(socket, :play, game_id))}
+  end
+
+    @doc """
+  Start the game.
+  """
+  @impl true
+  def handle_event("autoplay", _, socket) do
+    autoplay = socket.assigns.autoplay
+    socket = assign(socket, autoplay: !autoplay)
+
+    # autoplay store the previous state, so if it's true, then it's false now.
+    if !autoplay, do: send self(), :autoplay
+
+    {:noreply, socket}
   end
 
   @doc """
@@ -90,7 +111,7 @@ defmodule TZ48Web.GameLive do
 
     PubSub.broadcast TZ48.PubSub, "game:#{game_id}", :sync_board
 
-    Process.send_after(self(), :place_random_tile, @delay)
+    if game.state == :continue, do: Process.send_after(self(), :place_random_tile, @delay)
     {:noreply, assign(socket, :game, game)}
   end
 
@@ -113,6 +134,19 @@ defmodule TZ48Web.GameLive do
   end
 
   @impl true
+  def handle_info(:autoplay, socket) do
+    game_pid = socket.assigns.game_pid
+    possible_moves = [:left, :right, :up, :down]
+    direction = Enum.random(possible_moves)
+    game = GameServer.get_game(game_pid)
+
+    send self(), {:move, direction}
+
+    if game.state == :continue && socket.assigns.autoplay, do: Process.send_after(self(), :autoplay, 500)
+    {:noreply, socket}
+  end
+
+  @impl true
   def terminate(reason, socket) do
     case reason do
       {:shutdown, :closed} ->
@@ -127,14 +161,6 @@ defmodule TZ48Web.GameLive do
         end
 
         _ -> :ok
-    end
-  end
-
-  defp maybe_animate({x, y}, row, col) do
-    if x == row && y == col do
-      "tile-animate"
-    else
-      ""
     end
   end
 

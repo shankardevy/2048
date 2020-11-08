@@ -41,6 +41,7 @@ defmodule TZ48.GameServer do
 
   @impl true
   def handle_call(:start, _from, game) do
+    game = Game.start_game(game)
     {:reply, game, game}
   end
 
