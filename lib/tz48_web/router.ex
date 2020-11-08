@@ -17,7 +17,8 @@ defmodule TZ48Web.Router do
   scope "/", TZ48Web do
     pipe_through :browser
 
-    live "/", PageLive, :index
+    live "/", GameLive, :index
+    live "/game/:id", GameLive, :play
   end
 
   # Other scopes may use custom stacks.

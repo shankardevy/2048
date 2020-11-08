@@ -1,5 +1,4 @@
-defmodule TZ48.Gameboard do
-  alias TZ48.Util
+defmodule TZ48.Game do
   @moduledoc """
   The 2048 Gameboard.
 
@@ -8,25 +7,23 @@ defmodule TZ48.Gameboard do
   game state at the end of each move.
   """
 
+  alias TZ48.Util
+
+  defstruct id: nil, board: [], players: [], state: :continue
 
   @doc """
-  Provides the gameboard grid.
+  Start a new game.
 
   The game board is a nested rowsxcols list with each tile having the possibility to store one of the following values:
   2048, 1024, 512, 256, 128, 64, 32, 16, 8, 4, 2 or `:empty`. When initialized, all values are :empty.
-
-  [
-    [:empty, :empty, :empty, :empty, :empty, :empty],
-    [:empty, :empty, :empty, :empty, :empty, :empty],
-    [:empty, :empty, :empty, :empty, :empty, :empty],
-    [:empty, :empty, :empty, :empty, :empty, :empty],
-    [:empty, :empty, :empty, :empty, :empty, :empty],
-    [:empty, :empty, :empty, :empty, :empty, :empty]
-  ]
   """
+  def new(opts) do
+    %__MODULE__{id: opts[:game_id], board: get_board(), players: [opts[:player]]}
+  end
+
   @rows 6
   @cols 6
-  def get_board() do
+  defp get_board() do
     List.duplicate(:empty, @cols)
     |> List.duplicate(@rows)
   end
@@ -43,35 +40,36 @@ defmodule TZ48.Gameboard do
   Places a random tile from `@tile_options` at a random `:empty` tile.
   """
   @tile_options [2, 4]
-  def place_random_tile(board, tile \\ nil) do
+  def place_random_tile(game, tile \\ nil) do
     tile = tile || Enum.random(@tile_options)
-    empty_spots = find_empty_spots(board)
+    empty_spots = find_empty_spots(game.board)
     random_spot = Enum.random(empty_spots)
-    {do_place_tile(board, random_spot, tile), random_spot}
+    %{game | board: do_place_tile(game.board, random_spot, tile)}
+    # {do_place_tile(board, random_spot, tile), random_spot}
   end
 
   defp do_place_tile(board, {x, y} = _spot, tile) do
     row = Enum.at(board, x)
-    updated_row = List.update_at(row, y, fn(_) -> tile end)
-    List.update_at(board, x, fn(_) -> updated_row end)
+    updated_row = List.update_at(row, y, fn _ -> tile end)
+    List.update_at(board, x, fn _ -> updated_row end)
   end
 
   defp find_empty_spots(board) do
     board
+    |> Enum.with_index()
+    |> Enum.map(fn {row, rindex} ->
+      row
       |> Enum.with_index()
-      |> Enum.map(fn({row, rindex}) ->
-            row
-            |> Enum.with_index()
-            |> Enum.reduce([], fn({tile, cindex}, acc) ->
-                  if(tile == :empty) do
-                    acc ++ [cindex]
-                  else
-                    acc
-                  end
-                end)
-            |> Enum.map(fn(cindex) -> {rindex, cindex} end)
-          end)
-      |> List.flatten()
+      |> Enum.reduce([], fn {tile, cindex}, acc ->
+        if(tile == :empty) do
+          acc ++ [cindex]
+        else
+          acc
+        end
+      end)
+      |> Enum.map(fn cindex -> {rindex, cindex} end)
+    end)
+    |> List.flatten()
   end
 
   @doc """
@@ -88,7 +86,7 @@ defmodule TZ48.Gameboard do
   def process_state(board) do
     cond do
       has_won?(board) -> :won
-      count_empty_tiles(board) == 1 -> :lost
+      count_empty_tiles(board) == 0 -> :lost
       true -> :continue
     end
   end
@@ -104,49 +102,64 @@ defmodule TZ48.Gameboard do
   We do this by tranposing the rows as columns then do :left movement for :up and :right movement
   for :down and then transpose again.
   """
-  def process_move(board, :right) do
-    Enum.map(board, fn(row) ->
+  def process_move(game, direction) do
+    board = game.board
+    updated_board = do_process_move(board, direction)
+    state = process_state(updated_board)
+
+    %{game | state: state, board: updated_board}
+  end
+
+  def do_process_move(board, :right) do
+    Enum.map(board, fn row ->
       row
-      |> Enum.reverse
+      |> Enum.reverse()
       |> process_row
-      |> Enum.reverse
+      |> Enum.reverse()
     end)
   end
 
-  def process_move(board, :left) do
-    Enum.map(board, fn(row) ->
+  def do_process_move(board, :left) do
+    Enum.map(board, fn row ->
       process_row(row)
     end)
   end
 
-  def process_move(board, :up) do
+  def do_process_move(board, :up) do
     board
     |> Util.transpose()
-    |> process_move(:left)
+    |> do_process_move(:left)
     |> Util.transpose()
   end
 
-  def process_move(board, :down) do
+  def do_process_move(board, :down) do
     board
     |> Util.transpose()
-    |> process_move(:right)
+    |> do_process_move(:right)
     |> Util.transpose()
   end
 
   def process_row(row) do
     length = Enum.count(row)
 
-    row = Enum.reduce(row, [], fn(tile, acc) ->
-      cond do
-        is_empty_tile?(tile) -> acc
-        acc == [] -> [tile]
-        is_mergable_tile?(tile, acc) ->
-          [h|t] = acc
-          [h + tile] ++ t
-        true -> [tile] ++ acc
-      end
-    end)
-    |> Enum.reverse
+    row =
+      Enum.reduce(row, [], fn tile, acc ->
+        cond do
+          is_empty_tile?(tile) ->
+            acc
+
+          acc == [] ->
+            [tile]
+
+          is_mergable_tile?(tile, acc) ->
+            [h | t] = acc
+            [h + tile] ++ t
+
+          true ->
+            [tile] ++ acc
+        end
+      end)
+      |> Enum.reverse()
 
     list = Stream.cycle([:empty]) |> Enum.take(length - Enum.count(row))
 
@@ -154,20 +167,24 @@ defmodule TZ48.Gameboard do
   end
 
   defp is_empty_tile?(tile), do: tile == :empty
-  defp is_mergable_tile?(tile, [h|_]) do
+
+  defp is_mergable_tile?(tile, [h | _]) do
     h == tile
   end
+
   defp is_mergable_tile?(_, []), do: false
 
   def serialize(board) do
     board
-    |> List.flatten
-    |> Enum.reduce("", fn(e, acc) ->
-        element = case e do
+    |> List.flatten()
+    |> Enum.reduce("", fn e, acc ->
+      element =
+        case e do
           :empty -> "e"
           _ -> e
         end
-        "#{acc}#{element}"
+
+      "#{acc}#{element}"
     end)
   end
 
@@ -178,7 +195,6 @@ defmodule TZ48.Gameboard do
 
   defp count_empty_tiles(board) do
     find_empty_spots(board)
-    |> Enum.count
+    |> Enum.count()
   end
-
 end
