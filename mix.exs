@@ -34,8 +34,6 @@ defmodule TZ48.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.5.6"},
-      {:phoenix_ecto, "~> 4.1"},
-      {:ecto_sql, "~> 3.4"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_live_view, "~> 0.14.6"},
       {:floki, ">= 0.27.0", only: :test},
@@ -46,7 +44,8 @@ defmodule TZ48.MixProject do
       {:telemetry_poller, "~> 0.4"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
-      {:plug_cowboy, "~> 2.0"}
+      {:plug_cowboy, "~> 2.0"},
+      { :elixir_uuid, "~> 1.2" }
     ]
   end
 
@@ -58,10 +57,7 @@ defmodule TZ48.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "cmd npm install --prefix assets"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
+      setup: ["deps.get", "cmd npm install --prefix assets"]
     ]
   end
 end

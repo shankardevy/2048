@@ -7,8 +7,6 @@ defmodule TZ48.Application do
 
   def start(_type, _args) do
     children = [
-      # Start the Ecto repository
-      TZ48.Repo,
       # Start the Telemetry supervisor
       TZ48Web.Telemetry,
       # Start the PubSub system

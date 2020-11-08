@@ -29,12 +29,6 @@ defmodule TZ48Web.ChannelCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(TZ48.Repo)
-
-    unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(TZ48.Repo, {:shared, self()})
-    end
-
     :ok
   end
 end
