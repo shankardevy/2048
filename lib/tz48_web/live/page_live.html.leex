@@ -1,0 +1,35 @@
+<div class="container">
+  <div class="row">
+    <div class="col-sm-6">
+      <h1>2048</h1>
+      <%= if @board do %>
+      <div class="game-board" data-board-state="<%= Gameboard.serialize(@board) %>">
+        <%= for {row, i} <- Enum.with_index(@board) do %>
+          <div class="game-row d-flex flex-row">
+            <%= for {col, j} <- Enum.with_index(row) do %>
+              <div class="game-tile game-tile-<%= col %> <%= maybe_animate(@spot, i, j) %>"><%= if col == :empty, do: "", else: col %></div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+      <% end %>
+    </div>
+    <div class="col-sm-6">
+      <%= if !@board do %>
+        <button phx-click="start" class="btn btn-primary">Start Game</button>
+      <% else %>
+        <div class="d-flex flex-row">
+          <div class="ctrl-key"></div>
+          <div phx-window-keydown="move" phx-key="ArrowUp" phx-throttle="500" phx-click="move" phx-value-direction="up" class="ctrl-key">UP</div>
+          <div class="ctrl-key"></div>
+        </div>
+        <div class="d-flex flex-row">
+          <div phx-window-keydown="move" phx-key="ArrowLeft" phx-throttle="500" phx-click="move" phx-value-direction="left" class="ctrl-key">LEFT</div>
+          <div phx-window-keydown="move" phx-key="ArrowDown" phx-throttle="500" phx-click="move" phx-value-direction="down" class="ctrl-key">DOWN</div>
+          <div phx-window-keydown="move" phx-key="ArrowRight" phx-throttle="500" phx-click="move" phx-value-direction="right" class="ctrl-key">RIGHT</div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+

@@ -47,7 +47,7 @@ defmodule TZ48.Gameboard do
     tile = tile || Enum.random(@tile_options)
     empty_spots = find_empty_spots(board)
     random_spot = Enum.random(empty_spots)
-    do_place_tile(board, random_spot, tile)
+    {do_place_tile(board, random_spot, tile), random_spot}
   end
 
   defp do_place_tile(board, {x, y} = _spot, tile) do
@@ -159,6 +159,17 @@ defmodule TZ48.Gameboard do
   end
   defp is_mergable_tile?(_, []), do: false
 
+  def serialize(board) do
+    board
+    |> List.flatten
+    |> Enum.reduce("", fn(e, acc) ->
+        element = case e do
+          :empty -> "e"
+          _ -> e
+        end
+        "#{acc}#{element}"
+    end)
+  end
 
   defp has_won?(board) do
     List.flatten(board)

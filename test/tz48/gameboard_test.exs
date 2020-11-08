@@ -13,7 +13,7 @@ defmodule TZ48.GameboardTest do
 
   test "start game places 2 on a random location" do
     board = Gameboard.get_board()
-    board = Gameboard.start_game(board)
+    {board, _spot} = Gameboard.start_game(board)
 
     non_empty_tiles = get_non_empty_tiles(board)
 
@@ -23,7 +23,7 @@ defmodule TZ48.GameboardTest do
   describe "place_random_tile/2" do
     test "places 2 or 4" do
       board = Gameboard.get_board()
-      board = Gameboard.place_random_tile(board)
+      {board, _spot} = Gameboard.place_random_tile(board)
 
       non_empty_tiles = get_non_empty_tiles(board)
 
@@ -34,7 +34,7 @@ defmodule TZ48.GameboardTest do
     test "doesn't overwrite existing tile" do
       board = get_board_with_only_one_empty_tile()
 
-      board = Gameboard.place_random_tile(board)
+      {board, _spot} = Gameboard.place_random_tile(board)
       non_empty_tiles = get_non_empty_tiles(board)
 
       assert Enum.count(non_empty_tiles) == @total_tiles
