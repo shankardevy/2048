@@ -18,7 +18,7 @@ defmodule TZ48.Game do
   2048, 1024, 512, 256, 128, 64, 32, 16, 8, 4, 2 or `:empty`. When initialized, all values are :empty.
   """
   def new(opts) do
-    %__MODULE__{id: opts[:game_id], board: get_board(), players: [opts[:player]]}
+    %__MODULE__{id: opts[:id], board: get_board()}
   end
 
   @rows 6
@@ -32,8 +32,24 @@ defmodule TZ48.Game do
   Places the `@initial_tile` at a random `:empty` tile
   """
   @initial_tile 2
-  def start_game(board) do
-    place_random_tile(board, @initial_tile)
+  def start_game(game) do
+    place_random_tile(game, @initial_tile)
+  end
+
+  @doc """
+  Adds a player pid to the current player list.
+  """
+  def join(game, pid) do
+    players = [pid] ++ game.players
+    %{game | players: players}
+  end
+
+  @doc """
+  Adds a player pid to the current player list.
+  """
+  def exit(game, pid) do
+    players = List.delete(game.players, pid)
+    %{game | players: players}
   end
 
   @doc """

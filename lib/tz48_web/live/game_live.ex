@@ -14,7 +14,7 @@ defmodule TZ48Web.GameLive do
           {:ok, _game_server_pid} =
             DynamicSupervisor.start_child(
               TZ48.GameSupervisor,
-              {GameServer, [name: game_pid(game_id), player: self()]}
+              {GameServer, [id: game_id, name: game_pid(game_id)]}
             )
           push_redirect(socket, to: Routes.game_path(socket, :play, game_id))
 
@@ -29,11 +29,15 @@ defmodule TZ48Web.GameLive do
   def handle_params(%{"id" => game_id}, _uri, socket) do
     game_pid = get_game_pid(game_id)
 
-    game = if game_pid do
-      GameServer.start_game(game_pid)
+    game = cond do
+      socket.connected? && game_pid ->
+        PubSub.subscribe TZ48.PubSub, "game:#{game_id}"
+        GameServer.join_game(game_pid, self())
+      game_pid ->
+        GameServer.get_game(game_pid)
+      true -> nil
     end
 
-    if socket.connected?, do: PubSub.subscribe TZ48.PubSub, "game:#{game_id}"
 
     socket = assign(socket, game: game, game_pid: game_pid, game_id: game_id)
 
@@ -123,8 +127,21 @@ defmodule TZ48Web.GameLive do
   end
 
   @impl true
-  def terminate(reason, _socket) do
-    IO.inspect(reason)
+  def terminate(reason, socket) do
+    case reason do
+      {:shutdown, :closed} ->
+        game_pid = socket.assigns.game_pid
+        game = GameServer.exit_game(game_pid, self())
+        if Enum.count(game.players) == 0 do
+          [{pid, nil}] = Registry.lookup(TZ48.GameRegistry, socket.assigns.game_id)
+          DynamicSupervisor.terminate_child(
+            TZ48.GameSupervisor,
+            pid
+          )
+        end
+
+        _ -> :ok
+    end
   end
 
   defp maybe_animate({x, y}, row, col) do
@@ -137,7 +154,7 @@ defmodule TZ48Web.GameLive do
 
   defp get_game_pid(game_id) do
     case Registry.lookup(TZ48.GameRegistry, game_id) do
-      [{pid, nil}] -> pid
+      [{_pid, nil}] -> {:via, Registry, {TZ48.GameRegistry, game_id}}
       _ -> nil
     end
   end

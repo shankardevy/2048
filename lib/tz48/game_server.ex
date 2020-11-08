@@ -11,6 +11,14 @@ defmodule TZ48.GameServer do
     GenServer.call(pid, :start)
   end
 
+  def join_game(pid, player_pid) do
+    GenServer.call(pid, {:join, player_pid})
+  end
+
+  def exit_game(pid, player_pid) do
+    GenServer.call(pid, {:exit, player_pid})
+  end
+
   def get_game(pid) do
     GenServer.call(pid, :get)
   end
@@ -38,6 +46,20 @@ defmodule TZ48.GameServer do
 
   @impl true
   def handle_call(:get, _from, game) do
+    {:reply, game, game}
+  end
+
+  @impl true
+  def handle_call({:join, pid}, _from, game) do
+    game = Game.join(game, pid)
+
+    {:reply, game, game}
+  end
+
+  @impl true
+  def handle_call({:exit, pid}, _from, game) do
+    game = Game.exit(game, pid)
+
     {:reply, game, game}
   end
 
