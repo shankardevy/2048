@@ -1,6 +1,7 @@
 defmodule TZ48Web.GameLive do
   use TZ48Web, :live_view
 
+  alias Phoenix.PubSub
   alias TZ48.GameServer
   alias TZ48.Game
 
@@ -32,6 +33,8 @@ defmodule TZ48Web.GameLive do
       GameServer.start_game(game_pid)
     end
 
+    if socket.connected?, do: PubSub.subscribe TZ48.PubSub, "game:#{game_id}"
+
     socket = assign(socket, game: game, game_pid: game_pid, game_id: game_id)
 
     {:noreply, socket}
@@ -61,7 +64,7 @@ defmodule TZ48Web.GameLive do
         "ArrowRight" -> :right
       end
 
-    send(self(), {:move, direction})
+    send self(), {:move, direction}
 
     {:noreply, socket}
   end
@@ -79,7 +82,7 @@ defmodule TZ48Web.GameLive do
         "right" -> :right
       end
 
-    send(self(), {:move, direction})
+    send self(), {:move, direction}
 
     {:noreply, socket}
   end
@@ -92,15 +95,31 @@ defmodule TZ48Web.GameLive do
   @impl true
   def handle_info({:move, direction}, socket) do
     game_pid = socket.assigns.game_pid
+    game_id = socket.assigns.game_id
     game = GameServer.process_move(game_pid, direction)
+
+    PubSub.broadcast TZ48.PubSub, "game:#{game_id}", :sync_board
+
     Process.send_after(self(), :place_random_tile, @delay)
     {:noreply, assign(socket, :game, game)}
   end
 
   @impl true
   def handle_info(:place_random_tile, socket) do
+    game_id = socket.assigns.game_id
     game = socket.assigns.game_pid |> GameServer.place_random_tile()
+
+    PubSub.broadcast TZ48.PubSub, "game:#{game_id}", :sync_board
+
     {:noreply, assign(socket, game: game)}
+  end
+
+  @impl true
+  def handle_info(:sync_board, socket) do
+    game_pid = socket.assigns.game_pid
+    game = GameServer.get_game(game_pid)
+
+    {:noreply, assign(socket, :game, game)}
   end
 
   @impl true
