@@ -30,13 +30,6 @@ defmodule TZ48Web.Telemetry do
         unit: {:native, :millisecond}
       ),
 
-      # Database Metrics
-      summary("tz48.repo.query.total_time", unit: {:native, :millisecond}),
-      summary("tz48.repo.query.decode_time", unit: {:native, :millisecond}),
-      summary("tz48.repo.query.query_time", unit: {:native, :millisecond}),
-      summary("tz48.repo.query.queue_time", unit: {:native, :millisecond}),
-      summary("tz48.repo.query.idle_time", unit: {:native, :millisecond}),
-
       # VM Metrics
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),

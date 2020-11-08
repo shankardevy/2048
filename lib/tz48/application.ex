@@ -7,14 +7,14 @@ defmodule TZ48.Application do
 
   def start(_type, _args) do
     children = [
-      # Start the Ecto repository
-      TZ48.Repo,
       # Start the Telemetry supervisor
       TZ48Web.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: TZ48.PubSub},
       # Start the Endpoint (http/https)
-      TZ48Web.Endpoint
+      TZ48Web.Endpoint,
+      # TZ48.GameSupervisor,
+      {DynamicSupervisor, strategy: :one_for_one, name: MyApp.DynamicSupervisor}
       # Start a worker by calling: TZ48.Worker.start_link(arg)
       # {TZ48.Worker, arg}
     ]

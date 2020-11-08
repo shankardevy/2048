@@ -8,8 +8,7 @@
 use Mix.Config
 
 config :tz48,
-  namespace: TZ48,
-  ecto_repos: [TZ48.Repo]
+  namespace: TZ48
 
 # Configures the endpoint
 config :tz48, TZ48Web.Endpoint,

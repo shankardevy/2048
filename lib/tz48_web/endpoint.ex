@@ -32,7 +32,6 @@ defmodule TZ48Web.Endpoint do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
-    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :tz48
   end
 
   plug Phoenix.LiveDashboard.RequestLogger,
