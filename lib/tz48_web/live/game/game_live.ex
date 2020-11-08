@@ -142,7 +142,7 @@ defmodule TZ48Web.GameLive do
 
     send self(), {:move, direction}
 
-    if game.state == :continue && socket.assigns.autoplay, do: Process.send_after(self(), :autoplay, 500)
+    if game.state == :continue && socket.assigns.autoplay, do: Process.send_after(self(), :autoplay, 1500)
     {:noreply, socket}
   end
 
