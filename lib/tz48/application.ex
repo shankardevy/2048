@@ -13,8 +13,8 @@ defmodule TZ48.Application do
       {Phoenix.PubSub, name: TZ48.PubSub},
       # Start the Endpoint (http/https)
       TZ48Web.Endpoint,
-      # TZ48.GameSupervisor,
-      {DynamicSupervisor, strategy: :one_for_one, name: MyApp.DynamicSupervisor}
+      {Registry, keys: :unique, name: TZ48.GameRegistry},
+      {DynamicSupervisor, strategy: :one_for_one, name: TZ48.GameSupervisor}
       # Start a worker by calling: TZ48.Worker.start_link(arg)
       # {TZ48.Worker, arg}
     ]

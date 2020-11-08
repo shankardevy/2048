@@ -3,7 +3,7 @@
     <div class="col-sm-6">
       <h1>2048</h1>
       <p class="lead">Join the tiles, get to 2048!</p>
-      <%= if @game do %>
+      <%= if @game_pid do %>
       <p>Game state: <%= @game.state %></p>
       <div class="game-board" data-board-state="<%= Game.serialize(@game.board) %>">
         <%= for {row, i} <- Enum.with_index(@game.board) do %>
@@ -14,12 +14,13 @@
           </div>
         <% end %>
       </div>
+      <% else %>
+      <p>It looks like the game you are trying to join doesn't exist or has ended. Don't worry. You can start a new game!</p>
+      <a href="/" class="btn btn-primary">Start Game</a>
       <% end %>
     </div>
     <div class="col-sm-6">
-      <%= if !@game do %>
-        <button phx-click="start" class="btn btn-primary">Start Game</button>
-      <% else %>
+      <%= if @game_pid do %>
         <div class="d-flex flex-row">
           <div class="ctrl-key"></div>
           <div phx-window-keydown="move" phx-key="ArrowUp" phx-throttle="500" phx-click="move" phx-value-direction="up" class="ctrl-key">UP</div>

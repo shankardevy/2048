@@ -10,6 +10,11 @@ defmodule TZ48Web.GameLive do
       case params["id"] do
         nil ->
           game_id = UUID.uuid4()
+          {:ok, _game_server_pid} =
+            DynamicSupervisor.start_child(
+              TZ48.GameSupervisor,
+              {GameServer, [name: game_pid(game_id), player: self()]}
+            )
           push_redirect(socket, to: Routes.game_path(socket, :play, game_id))
 
         _ ->
@@ -21,13 +26,13 @@ defmodule TZ48Web.GameLive do
 
   @impl true
   def handle_params(%{"id" => game_id}, _uri, socket) do
-    {:ok, game_server} =
-      DynamicSupervisor.start_child(
-        MyApp.DynamicSupervisor,
-        {TZ48.GameServer, [game_id: game_id, player: self()]}
-      )
+    game_pid = get_game_pid(game_id)
 
-    socket = assign(socket, game_server: game_server, game_id: game_id)
+    game = if game_pid do
+      GameServer.start_game(game_pid)
+    end
+
+    socket = assign(socket, game: game, game_pid: game_pid, game_id: game_id)
 
     {:noreply, socket}
   end
@@ -37,7 +42,8 @@ defmodule TZ48Web.GameLive do
   """
   @impl true
   def handle_event("start", _, socket) do
-    game = socket.assigns.game_server |> GameServer.start_game()
+    game_pid = socket.assigns.game_pid
+    game = GameServer.start_game(game_pid)
 
     {:noreply, assign(socket, game: game)}
   end
@@ -85,14 +91,15 @@ defmodule TZ48Web.GameLive do
   @delay 500
   @impl true
   def handle_info({:move, direction}, socket) do
-    game = socket.assigns.game_server |> GameServer.process_move(direction)
+    game_pid = socket.assigns.game_pid
+    game = GameServer.process_move(game_pid, direction)
     Process.send_after(self(), :place_random_tile, @delay)
     {:noreply, assign(socket, :game, game)}
   end
 
   @impl true
   def handle_info(:place_random_tile, socket) do
-    game = socket.assigns.game_server |> GameServer.place_random_tile()
+    game = socket.assigns.game_pid |> GameServer.place_random_tile()
     {:noreply, assign(socket, game: game)}
   end
 
@@ -108,4 +115,16 @@ defmodule TZ48Web.GameLive do
       ""
     end
   end
+
+  defp get_game_pid(game_id) do
+    case Registry.lookup(TZ48.GameRegistry, game_id) do
+      [{pid, nil}] -> pid
+      _ -> nil
+    end
+  end
+
+  defp game_pid(id) do
+    {:via, Registry, {TZ48.GameRegistry, id}}
+  end
+
 end

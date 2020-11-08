@@ -4,7 +4,7 @@ defmodule TZ48.GameServer do
   alias TZ48.Game
 
   def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts)
+    GenServer.start_link(__MODULE__, opts, name: opts[:name])
   end
 
   def start_game(pid) do
