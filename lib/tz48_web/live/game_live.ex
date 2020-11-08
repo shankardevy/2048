@@ -7,22 +7,7 @@ defmodule TZ48Web.GameLive do
 
   @impl true
   def mount(params, _session, socket) do
-    socket =
-      case params["id"] do
-        nil ->
-          game_id = UUID.uuid4()
-          {:ok, _game_server_pid} =
-            DynamicSupervisor.start_child(
-              TZ48.GameSupervisor,
-              {GameServer, [id: game_id, name: game_pid(game_id)]}
-            )
-          push_redirect(socket, to: Routes.game_path(socket, :play, game_id))
-
-        _ ->
-          socket
-      end
-
-    {:ok, assign(socket, spot: {1, 1}, game: nil)}
+    {:ok, assign(socket, spot: {1, 1}, game_pid: nil)}
   end
 
   @impl true
@@ -43,6 +28,7 @@ defmodule TZ48Web.GameLive do
 
     {:noreply, socket}
   end
+  def handle_params(_params, _uri, socket), do: {:noreply, socket}
 
   @doc """
   Start the game.
