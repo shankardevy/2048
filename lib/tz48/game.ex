@@ -141,7 +141,7 @@ defmodule TZ48.Game do
     %{game | state: state, board: updated_board, last_move: direction}
   end
 
-  def do_process_move(board, :right) do
+  defp do_process_move(board, :right) do
     Enum.map(board, fn row ->
       row
       |> Enum.reverse()
@@ -150,20 +150,20 @@ defmodule TZ48.Game do
     end)
   end
 
-  def do_process_move(board, :left) do
+  defp do_process_move(board, :left) do
     Enum.map(board, fn row ->
       process_row(row)
     end)
   end
 
-  def do_process_move(board, :up) do
+  defp do_process_move(board, :up) do
     board
     |> Util.transpose()
     |> do_process_move(:left)
     |> Util.transpose()
   end
 
-  def do_process_move(board, :down) do
+  defp do_process_move(board, :down) do
     board
     |> Util.transpose()
     |> do_process_move(:right)
@@ -193,9 +193,11 @@ defmodule TZ48.Game do
       end)
       |> Enum.reverse() # Since we are prepending each element to the list, we need to reverse to the order correct.
 
-    list = Stream.cycle([:empty]) |> Enum.take(length - Enum.count(row))
+    # Since we remove empty items, we need to ensure the new row is still having same number of items.
+    # We pad with :empty tile for the difference.
+    padding = Stream.cycle([:empty]) |> Enum.take(length - Enum.count(row))
 
-    row ++ list
+    row ++ padding
   end
 
   defp is_empty_tile?(tile), do: tile == :empty

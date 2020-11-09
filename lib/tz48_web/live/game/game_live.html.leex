@@ -22,7 +22,7 @@
     <div class="row">
       <div class="col-sm-6">
         <%= if @game do %>
-          <%= live_component @socket, TZ48Web.GameboardComponent, game: @game, spot: @spot %>
+          <%= live_component @socket, TZ48Web.GameboardComponent, game: @game %>
         <% end %>
       </div>
       <div class="col-sm-6">
@@ -41,27 +41,24 @@
 
             <form phx-submit="send">
               <div class="input-group mb-3">
-                <textarea id="chat-msg" phx-hook="ClearText" type="text" class="form-control" placeholder="Enter your message" name="message"></textarea>
+                <textarea id="chat-msg" type="text" class="form-control" placeholder="Enter your message" name="message"></textarea>
                 <button class="btn btn-outline-primary" type="submit" id="button-addon2">Send message</button>
               </div>
             </form>
           </div>
           <% else %>
           <p class="lead">Invite your friends to play this game together. Copy the link below and share with your friends. You can chat with them once they join the game.</p>
-          <!-- Target -->
-          <input id="foo" value="<%= Routes.game_url(@socket, :play, @game_id) %>">
 
-          <!-- Trigger -->
-          <button class="copy-btn" data-clipboard-target="#foo">
+          <div class="input-group mb-3">
+            <input class="form-control" id="foo" value="<%= Routes.game_url(@socket, :play, @game_id) %>">
+            <button class="copy-btn" data-clipboard-target="#foo">
               <img src="/images/clippy.svg" width="13" alt="Copy to clipboard">
           </button>
+          </div>
+
           <% end %>
 
-
-
-
-
-          <%= live_component @socket, TZ48Web.GameControlComponent, autoplay: @autoplay, game: @game, spot: @spot %>
+          <%= live_component @socket, TZ48Web.GameControlComponent, autoplay: @autoplay, game: @game %>
         <% end %>
       </div>
     </div>

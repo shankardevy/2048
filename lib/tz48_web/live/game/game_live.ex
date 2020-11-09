@@ -3,11 +3,10 @@ defmodule TZ48Web.GameLive do
 
   alias Phoenix.PubSub
   alias TZ48.GameServer
-  alias TZ48.Game
 
   @impl true
-  def mount(params, _session, socket) do
-    {:ok, assign(socket, spot: {1, 1}, autoplay: false, game: nil, game_id: nil)}
+  def mount(_params, _session, socket) do
+    {:ok, assign(socket, autoplay: false, game: nil, game_id: nil)}
   end
 
   @impl true
@@ -49,7 +48,7 @@ defmodule TZ48Web.GameLive do
         {GameServer, [id: game_id, name: game_pid(game_id)]}
       )
 
-    game = GameServer.start_game(pid)
+    GameServer.start_game(pid)
 
     {:noreply, push_patch(socket, to: Routes.game_path(socket, :play, game_id))}
   end

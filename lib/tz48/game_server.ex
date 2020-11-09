@@ -75,12 +75,14 @@ defmodule TZ48.GameServer do
     {:reply, game, game}
   end
 
+  @impl true
   def handle_call(:place_random_tile, _from, game) do
     game = Game.place_random_tile(game)
 
     {:reply, game, game}
   end
 
+  @impl true
   def handle_cast({:message, message}, game) do
     game = Game.add_message(game, message)
 

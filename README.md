@@ -36,6 +36,10 @@ Scenario 4: When the user joins a game with the link, the GameServer had already
 
 ## Features
 
+1. Play solo or play with any number of people sharing the same board.
+2. Play on mobile using touch keys or use keyboard on desktop.
+3. Bored to keep moving tiles? Use autoplay and watch the game playing itself. (but why would you do that??)
+4. Chat with other team members.
 
 
 

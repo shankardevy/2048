@@ -1,8 +1,6 @@
 defmodule TZ48Web.GameboardComponent do
   use TZ48Web, :live_component
 
-  alias TZ48.Game
-
   @impl true
   def render(assigns) do
     ~L"""
