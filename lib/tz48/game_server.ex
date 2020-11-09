@@ -31,6 +31,10 @@ defmodule TZ48.GameServer do
     GenServer.call(pid, :place_random_tile)
   end
 
+  def add_message(pid, message) do
+    GenServer.cast(pid, {:message, message})
+  end
+
   # Callbacks
 
   @impl true
@@ -76,4 +80,11 @@ defmodule TZ48.GameServer do
 
     {:reply, game, game}
   end
+
+  def handle_cast({:message, message}, game) do
+    game = Game.add_message(game, message)
+
+    {:noreply, game}
+  end
+
 end

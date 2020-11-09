@@ -99,6 +99,21 @@ defmodule TZ48Web.GameLive do
   end
 
   @doc """
+  Handle incoming chat messages.
+  """
+  @impl true
+  def handle_event("send", %{"message" => message}, socket) do
+    message = "#{inspect self()}: #{message}"
+    game_id = socket.assigns.game_id
+    game_pid = socket.assigns.game_pid
+    GameServer.add_message(game_pid, message)
+
+
+    PubSub.broadcast TZ48.PubSub, "game:#{game_id}", :sync_board
+    {:noreply, socket}
+  end
+
+  @doc """
   Handles the message from LV whenever a direction key or button is pressed.
   """
   # 0.5s

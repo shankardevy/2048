@@ -9,7 +9,7 @@ defmodule TZ48.Game do
 
   alias TZ48.Util
 
-  defstruct id: nil, board: [], players: [], state: :continue, last_move: nil, new_coords: nil
+  defstruct id: nil, board: [], players: [], state: :continue, last_move: nil, new_coords: nil, messages: []
 
   @doc """
   Start a new game.
@@ -62,6 +62,16 @@ defmodule TZ48.Game do
     random_spot = Enum.random(empty_spots)
     %{game | board: do_place_tile(game.board, random_spot, tile), new_coords: random_spot}
     # {do_place_tile(board, random_spot, tile), random_spot}
+  end
+
+
+  @doc """
+  Add a chat message to the message list.
+  """
+  def add_message(game, message) do
+    messages = game.messages
+
+    %{game | messages: [message | messages]}
   end
 
   defp do_place_tile(board, {x, y} = _spot, tile) do

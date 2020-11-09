@@ -26,8 +26,41 @@
         <% end %>
       </div>
       <div class="col-sm-6">
+        <br/><br/>
         <%= if @game && @game.state == :continue do %>
           <p>Number of players: <%= Enum.count(@game.players) %></p>
+
+          <%= if Enum.count(@game.players) > 1 do %>
+          <div class="chat-container">
+            <h1>Chat with other players!</h1>
+            <div class="chat-window">
+              <%= for message <- Enum.reverse(@game.messages) do %>
+                <p><%= message %></p>
+              <% end %>
+            </div>
+
+            <form phx-submit="send">
+              <div class="input-group mb-3">
+                <textarea id="chat-msg" phx-hook="ClearText" type="text" class="form-control" placeholder="Enter your message" name="message"></textarea>
+                <button class="btn btn-outline-primary" type="submit" id="button-addon2">Send message</button>
+              </div>
+            </form>
+          </div>
+          <% else %>
+          <p class="lead">Invite your friends to play this game together. Copy the link below and share with your friends. You can chat with them once they join the game.</p>
+          <!-- Target -->
+          <input id="foo" value="<%= Routes.game_url(@socket, :play, @game_id) %>">
+
+          <!-- Trigger -->
+          <button class="copy-btn" data-clipboard-target="#foo">
+              <img src="/images/clippy.svg" width="13" alt="Copy to clipboard">
+          </button>
+          <% end %>
+
+
+
+
+
           <%= live_component @socket, TZ48Web.GameControlComponent, autoplay: @autoplay, game: @game, spot: @spot %>
         <% end %>
       </div>
