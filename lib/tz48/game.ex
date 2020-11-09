@@ -5,6 +5,8 @@ defmodule TZ48.Game do
   This module provides the 2048 game board and provides functions
   for starting the game, processing each moves and finding out the
   game state at the end of each move.
+
+  Autoplay makes the movement automatically in a random direction. Set to false by default.
   """
 
   alias TZ48.Util
@@ -15,7 +17,9 @@ defmodule TZ48.Game do
             state: :continue,
             last_move: nil,
             new_coords: nil,
-            messages: []
+            messages: [],
+            mode: :fcfs,
+            autoplay: false
 
   @doc """
   Start a new game.
@@ -51,11 +55,32 @@ defmodule TZ48.Game do
   end
 
   @doc """
-  Adds a player pid to the current player list.
+  Removes a player pid from the current player list.
   """
   def exit(game, pid) do
     players = List.delete(game.players, pid)
     %{game | players: players}
+  end
+
+  @doc """
+  Sets game mode.
+
+  Game mode can be
+    :fcfs - First come first served. In this mode, the first key pressed by any user is the next movement in the game.
+    :democracy - The direction that got the most votes with in the time window makes the next move.
+    :random_extreme - Randomly select the direction that got most or least votes.
+  """
+  def set_game_mode(game, mode) do
+    %{game | mode: mode}
+  end
+
+  @doc """
+  Toggles autoplay mode.
+
+
+  """
+  def toggle_autoplay(game) do
+    %{game | autoplay: !game.autoplay}
   end
 
   @doc """
@@ -67,7 +92,6 @@ defmodule TZ48.Game do
     empty_spots = find_empty_spots(game.board)
     random_spot = Enum.random(empty_spots)
     %{game | board: do_place_tile(game.board, random_spot, tile), new_coords: random_spot}
-    # {do_place_tile(board, random_spot, tile), random_spot}
   end
 
   @doc """
@@ -170,7 +194,6 @@ defmodule TZ48.Game do
     |> Util.transpose()
   end
 
-
   defp process_row(row) do
     length = Enum.count(row)
 
@@ -191,7 +214,8 @@ defmodule TZ48.Game do
             [tile] ++ acc
         end
       end)
-      |> Enum.reverse() # Since we are prepending each element to the list, we need to reverse to the order correct.
+      # Since we are prepending each element to the list, we need to reverse to the order correct.
+      |> Enum.reverse()
 
     # Since we remove empty items, we need to ensure the new row is still having same number of items.
     # We pad with :empty tile for the difference.

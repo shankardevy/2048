@@ -31,6 +31,13 @@
           <p>Number of players: <%= Enum.count(@game.players) %></p>
 
           <%= if Enum.count(@game.players) > 1 do %>
+          <h2>Choose your mode of game play:</h2>
+          <div class="btn-group" role="group" aria-label="Basic example">
+            <button phx-click="change_mode" phx-value-mode="fcfs" type="button" class="mb-2 btn btn-primary">First come first served</button>
+            <button disabled phx-click="change_mode" phx-value-mode="democracy" type="button" class="mb-2 btn btn-primary">Democracy</button>
+            <button disabled phx-click="change_mode" phx-value-mode="random_extreme" type="button" class="mb-2 btn btn-primary">Random Extreme</button>
+          </div>
+          <hr/>
           <div class="chat-container">
             <h1>Chat with other players!</h1>
             <div class="chat-window">
@@ -58,7 +65,12 @@
 
           <% end %>
 
-          <%= live_component @socket, TZ48Web.GameControlComponent, autoplay: @autoplay, game: @game %>
+          <nav class="navbar shadow fixed-bottom navbar-light bg-light">
+            <div class="container-fluid">
+              <%= live_component @socket, TZ48Web.GameControlComponent, autoplay: @autoplay, game: @game %>
+            </div>
+          </nav>
+
         <% end %>
       </div>
     </div>

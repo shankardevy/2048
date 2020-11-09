@@ -54,7 +54,7 @@ defmodule TZ48Web.GameLive do
   end
 
   @doc """
-  Start the game.
+  Toggles the autoplay feature of the game.
   """
   @impl true
   def handle_event("autoplay", _, socket) do
@@ -64,6 +64,14 @@ defmodule TZ48Web.GameLive do
     # autoplay store the previous state, so if it's true, then it's false now.
     if !autoplay, do: send(self(), :autoplay)
 
+    {:noreply, socket}
+  end
+
+  @doc """
+  Set gamemode.
+  """
+  @impl true
+  def handle_event("mode", %{"mode" => _mode}, socket) do
     {:noreply, socket}
   end
 
@@ -190,12 +198,12 @@ defmodule TZ48Web.GameLive do
 
   defp get_game_pid(game_id) do
     case Registry.lookup(TZ48.GameRegistry, game_id) do
-      [{_pid, nil}] -> {:via, Registry, {TZ48.GameRegistry, game_id}}
+      [{_pid, nil}] -> game_pid(game_id)
       _ -> nil
     end
   end
 
-  defp game_pid(id) do
-    {:via, Registry, {TZ48.GameRegistry, id}}
+  defp game_pid(game_id) do
+    {:via, Registry, {TZ48.GameRegistry, game_id}}
   end
 end

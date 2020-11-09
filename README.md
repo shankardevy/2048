@@ -36,10 +36,19 @@ Scenario 4: When the user joins a game with the link, the GameServer had already
 
 ## Features
 
-1. Play solo or play with any number of people sharing the same board.
+1. Play solo or play with any number of people sharing the same board. (First come first served basis. All players share the same board. Key press are processed chronologically.)
 2. Play on mobile using touch keys or use keyboard on desktop.
 3. Bored to keep moving tiles? Use autoplay and watch the game playing itself. (but why would you do that??)
 4. Chat with other team members.
+5. WIP: Democracy and Random Extreme mode of play.
 
+## Slide specification
+
+1. During the slide, tiles of equal values pushed into each other will merge into a new
+tile with the combined value. 2 + 2 = 4
+2. If there are 3 values next to each other, e.g. 2 2 2, and the player slides right,
+the values closest to the wall gets merged first resulting in 2 4.
+3. *Cascading merge in a single swipe* If there are 3 values next to each other, e.g., 4 2 2, and the player slides right,
+the value closest to the wall gets merged first resulting in 4 and since the following number is also 4, it gets merged again in the same swipe and ends up as 8.
 
 
