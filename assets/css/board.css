@@ -31,6 +31,10 @@ body {
     font-size: 25px;
   }
 }
+
+
+
+
 .game-tile:last-child {
   margin-right: 0;
 }
@@ -78,11 +82,21 @@ body {
   box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0.3968253968), inset 0 0 0 1px rgba(255, 255, 255, 0.2380952381);
   font-size: 45px;
 }
+@media screen and (max-width: 420px) {
+  .game-tile-512 {
+    font-size: 12px;
+  }
+}
 .game-tile-1024 {
   color: #f9f6f2;
   background: #edc53f;
   box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0.4761904762), inset 0 0 0 1px rgba(255, 255, 255, 0.2857142857);
   font-size: 35px;
+}
+@media screen and (max-width: 420px) {
+  .game-tile-1024 {
+    font-size: 12px;
+  }
 }
 .game-tile-2048 {
   color: #f9f6f2;
@@ -90,6 +104,12 @@ body {
   box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0.5555555556), inset 0 0 0 1px rgba(255, 255, 255, 0.3333333333);
   font-size: 35px;
 }
+@media screen and (max-width: 420px) {
+  .game-tile-2048 {
+    font-size: 12px;
+  }
+}
+
 
 .ctrl-key {
   width: 25px;
@@ -117,6 +137,8 @@ body {
     bottom: 60px;
   }
 }
+
+
 
 .tile-animate {
   animation: fadeIn;
