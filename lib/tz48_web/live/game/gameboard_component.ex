@@ -12,7 +12,7 @@ defmodule TZ48Web.GameboardComponent do
       <% else %>
       <p>&nbsp;</p>
       <% end %>
-      <div class="game-board" data-board-state="<%= Game.serialize(@game.board) %>">
+      <div class="game-board">
         <%= for {row, i} <- Enum.with_index(@game.board) do %>
           <div class="game-row d-flex flex-row">
             <%= for {col, j} <- Enum.with_index(row) do %>
@@ -34,5 +34,4 @@ defmodule TZ48Web.GameboardComponent do
       ""
     end
   end
-
 end

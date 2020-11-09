@@ -86,5 +86,4 @@ defmodule TZ48.GameServer do
 
     {:noreply, game}
   end
-
 end

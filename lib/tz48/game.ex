@@ -9,7 +9,13 @@ defmodule TZ48.Game do
 
   alias TZ48.Util
 
-  defstruct id: nil, board: [], players: [], state: :continue, last_move: nil, new_coords: nil, messages: []
+  defstruct id: nil,
+            board: [],
+            players: [],
+            state: :continue,
+            last_move: nil,
+            new_coords: nil,
+            messages: []
 
   @doc """
   Start a new game.
@@ -63,7 +69,6 @@ defmodule TZ48.Game do
     %{game | board: do_place_tile(game.board, random_spot, tile), new_coords: random_spot}
     # {do_place_tile(board, random_spot, tile), random_spot}
   end
-
 
   @doc """
   Add a chat message to the message list.
@@ -165,7 +170,8 @@ defmodule TZ48.Game do
     |> Util.transpose()
   end
 
-  def process_row(row) do
+
+  defp process_row(row) do
     length = Enum.count(row)
 
     row =
@@ -185,7 +191,7 @@ defmodule TZ48.Game do
             [tile] ++ acc
         end
       end)
-      |> Enum.reverse()
+      |> Enum.reverse() # Since we are prepending each element to the list, we need to reverse to the order correct.
 
     list = Stream.cycle([:empty]) |> Enum.take(length - Enum.count(row))
 
@@ -199,20 +205,6 @@ defmodule TZ48.Game do
   end
 
   defp is_mergable_tile?(_, []), do: false
-
-  def serialize(board) do
-    board
-    |> List.flatten()
-    |> Enum.reduce("", fn e, acc ->
-      element =
-        case e do
-          :empty -> "e"
-          _ -> e
-        end
-
-      "#{acc}#{element}"
-    end)
-  end
 
   defp has_won?(board) do
     List.flatten(board)

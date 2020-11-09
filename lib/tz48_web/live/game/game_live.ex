@@ -14,22 +14,26 @@ defmodule TZ48Web.GameLive do
   def handle_params(%{"id" => game_id}, _uri, socket) do
     game_pid = get_game_pid(game_id)
 
-    game = cond do
-      socket.connected? && game_pid ->
-        PubSub.subscribe TZ48.PubSub, "game:#{game_id}"
-        game = GameServer.join_game(game_pid, self())
-        PubSub.broadcast TZ48.PubSub, "game:#{game_id}", :sync_board
-        game
-      game_pid ->
-        GameServer.get_game(game_pid)
-      true -> nil
-    end
+    game =
+      cond do
+        socket.connected? && game_pid ->
+          PubSub.subscribe(TZ48.PubSub, "game:#{game_id}")
+          game = GameServer.join_game(game_pid, self())
+          PubSub.broadcast(TZ48.PubSub, "game:#{game_id}", :sync_board)
+          game
 
+        game_pid ->
+          GameServer.get_game(game_pid)
+
+        true ->
+          nil
+      end
 
     socket = assign(socket, game: game, game_pid: game_pid, game_id: game_id)
 
     {:noreply, socket}
   end
+
   def handle_params(_params, _uri, socket), do: {:noreply, socket}
 
   @doc """
@@ -38,17 +42,19 @@ defmodule TZ48Web.GameLive do
   @impl true
   def handle_event("start", _, socket) do
     game_id = UUID.uuid4()
+
     {:ok, pid} =
       DynamicSupervisor.start_child(
         TZ48.GameSupervisor,
         {GameServer, [id: game_id, name: game_pid(game_id)]}
       )
+
     game = GameServer.start_game(pid)
 
     {:noreply, push_patch(socket, to: Routes.game_path(socket, :play, game_id))}
   end
 
-    @doc """
+  @doc """
   Start the game.
   """
   @impl true
@@ -57,7 +63,7 @@ defmodule TZ48Web.GameLive do
     socket = assign(socket, autoplay: !autoplay)
 
     # autoplay store the previous state, so if it's true, then it's false now.
-    if !autoplay, do: send self(), :autoplay
+    if !autoplay, do: send(self(), :autoplay)
 
     {:noreply, socket}
   end
@@ -75,7 +81,7 @@ defmodule TZ48Web.GameLive do
         "ArrowRight" -> :right
       end
 
-    send self(), {:move, direction}
+    send(self(), {:move, direction})
 
     {:noreply, socket}
   end
@@ -93,7 +99,7 @@ defmodule TZ48Web.GameLive do
         "right" -> :right
       end
 
-    send self(), {:move, direction}
+    send(self(), {:move, direction})
 
     {:noreply, socket}
   end
@@ -103,13 +109,12 @@ defmodule TZ48Web.GameLive do
   """
   @impl true
   def handle_event("send", %{"message" => message}, socket) do
-    message = "#{inspect self()}: #{message}"
+    message = "#{inspect(self())}: #{message}"
     game_id = socket.assigns.game_id
     game_pid = socket.assigns.game_pid
     GameServer.add_message(game_pid, message)
 
-
-    PubSub.broadcast TZ48.PubSub, "game:#{game_id}", :sync_board
+    PubSub.broadcast(TZ48.PubSub, "game:#{game_id}", :sync_board)
     {:noreply, socket}
   end
 
@@ -124,7 +129,7 @@ defmodule TZ48Web.GameLive do
     game_id = socket.assigns.game_id
     game = GameServer.process_move(game_pid, direction)
 
-    PubSub.broadcast TZ48.PubSub, "game:#{game_id}", :sync_board
+    PubSub.broadcast(TZ48.PubSub, "game:#{game_id}", :sync_board)
 
     if game.state == :continue, do: Process.send_after(self(), :place_random_tile, @delay)
     {:noreply, assign(socket, :game, game)}
@@ -135,7 +140,7 @@ defmodule TZ48Web.GameLive do
     game_id = socket.assigns.game_id
     game = socket.assigns.game_pid |> GameServer.place_random_tile()
 
-    PubSub.broadcast TZ48.PubSub, "game:#{game_id}", :sync_board
+    PubSub.broadcast(TZ48.PubSub, "game:#{game_id}", :sync_board)
 
     {:noreply, assign(socket, game: game)}
   end
@@ -155,9 +160,11 @@ defmodule TZ48Web.GameLive do
     direction = Enum.random(possible_moves)
     game = GameServer.get_game(game_pid)
 
-    send self(), {:move, direction}
+    send(self(), {:move, direction})
 
-    if game.state == :continue && socket.assigns.autoplay, do: Process.send_after(self(), :autoplay, 1500)
+    if game.state == :continue && socket.assigns.autoplay,
+      do: Process.send_after(self(), :autoplay, 1500)
+
     {:noreply, socket}
   end
 
@@ -167,15 +174,18 @@ defmodule TZ48Web.GameLive do
       {:shutdown, :closed} ->
         game_pid = socket.assigns.game_pid
         game = GameServer.exit_game(game_pid, self())
+
         if Enum.count(game.players) == 0 do
           [{pid, nil}] = Registry.lookup(TZ48.GameRegistry, socket.assigns.game_id)
+
           DynamicSupervisor.terminate_child(
             TZ48.GameSupervisor,
             pid
           )
         end
 
-        _ -> :ok
+      _ ->
+        :ok
     end
   end
 
@@ -189,5 +199,4 @@ defmodule TZ48Web.GameLive do
   defp game_pid(id) do
     {:via, Registry, {TZ48.GameRegistry, id}}
   end
-
 end
